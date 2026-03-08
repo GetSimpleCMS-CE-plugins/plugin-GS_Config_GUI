@@ -429,6 +429,11 @@ function gscfg_panel() {
 	align-items: center;
 	gap: 6px;
 }
+#gscfg-wrap .gscfg-header .gscfg-desc {
+	flex: 0 0 100%; /* Takes full width */
+	order: 3; /* Ensures it comes after the first two */
+	margin-top: 8px; /* Optional spacing */
+}
 #gscfg-wrap .gscfg-dot {
 	width: 7px;
 	height: 7px;
@@ -545,7 +550,7 @@ function gscfg_panel() {
 }
 #gscfg-wrap .gscfg-key {
 	font-family: monospace;
-	font-size: 11px;
+	font-size: 12px;
 	color: #0891b2;
 	background: #ecfeff;
 	border: 1px solid #a5f3fc;
@@ -554,12 +559,12 @@ function gscfg_panel() {
 	white-space: nowrap;
 }
 #gscfg-wrap .gscfg-label {
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: 600;
 	color: #1e293b;
 }
 #gscfg-wrap .gscfg-desc {
-	font-size: 11px;
+	font-size: 12px;
 	color: #64748b;
 	margin-bottom: 7px;
 	line-height: 1.5;
@@ -736,6 +741,7 @@ function gscfg_panel() {
 	font-size: 11px;
 	color: #94a3b8;
 }
+pre {color: #3B82F6;}
 </style>
 
 <div id="gscfg-wrap">
@@ -751,6 +757,8 @@ function gscfg_panel() {
 	<div class="gscfg-filepath">
 		<span class="gscfg-dot" style="background:<?php echo $writable ? '#22c55e' : '#ef4444'; ?>"></span>
 		<?php echo htmlspecialchars($path, ENT_QUOTES, 'UTF-8'); ?>
+	</div>
+	<div class="gscfg-desc">Visual editor for <pre>gsconfig.php</pre> configuration settings.
 	</div>
 </div>
 
@@ -948,6 +956,33 @@ function gscfgToggle(cb, key) {
 			items[j].className = items[j].className.replace(' gscfg-active', '');
 			if (href === '#' + active) { items[j].className += ' gscfg-active'; }
 		}
+	}
+	function easeInOut(t) {
+		return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+	}
+	function smoothScrollTo(targetY, duration) {
+		var startY   = window.pageYOffset;
+		var distance = targetY - startY;
+		var startTime = null;
+		function step(timestamp) {
+			if (!startTime) { startTime = timestamp; }
+			var elapsed  = timestamp - startTime;
+			var progress = Math.min(elapsed / duration, 1);
+			window.scrollTo(0, startY + distance * easeInOut(progress));
+			if (elapsed < duration) { requestAnimationFrame(step); }
+		}
+		requestAnimationFrame(step);
+	}
+	for (var k = 0; k < items.length; k++) {
+		items[k].addEventListener('click', function(e) {
+			var targetId = this.getAttribute('href').replace('#', '');
+			var target   = document.getElementById(targetId);
+			if (target) {
+				e.preventDefault();
+				var offsetY = target.getBoundingClientRect().top + window.pageYOffset - 20;
+				smoothScrollTo(offsetY, 800); // 800ms — increase to slow down further
+			}
+		});
 	}
 	if (window.addEventListener) { window.addEventListener('scroll', onScroll, false); }
 	onScroll();
